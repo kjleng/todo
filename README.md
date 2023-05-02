@@ -1,7 +1,7 @@
 # README
 
 ### start the app
-$ docker compose run --rm app db:reset
+$ docker compose run --rm app rails db:reset db:migrate db:seed
 $ docker compose up
 
 ### rails console
