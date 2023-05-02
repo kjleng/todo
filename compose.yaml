@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    networks:
+      - mynetwork
+
+  db:
+    image: postgres:15.2-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: mysecretpassword
+    volumes:
+      - todo-rails-postgres:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+
+volumes:
+  todo-rails-postgres:
+
+networks:
+  mynetwork:
+    driver: bridge
