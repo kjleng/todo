@@ -9,12 +9,10 @@ COPY Gemfile.lock Gemfile.lock
 RUN set -ex; \
     apk add --no-cache \
         libpq \
-        nodejs \
         libcurl \
         tzdata \
         libxml2 \
         libxslt \
-        less \
         postgresql-client \
         gcompat \
         git \
