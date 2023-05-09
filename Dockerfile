@@ -1,46 +1,32 @@
-FROM ruby:3.2.2-alpine
+FROM ruby:3.2.2-alpine AS base
 
-WORKDIR /app
+RUN apk add --no-cache --update \
+      libpq-dev \
+      tzdata \
+      git \
+    && rm -rf /var/cache/apk/*
 
-COPY Gemfile Gemfile
-COPY Gemfile.lock Gemfile.lock
 
-# Install dependencies:
-RUN set -ex; \
-    apk add --no-cache \
-        libpq \
-        libcurl \
-        tzdata \
-        libxml2 \
-        libxslt \
-        postgresql-client \
-        gcompat \
-        git \
-    ; \
-    apk add --no-cache --virtual .build-deps \
-        g++ \
-        gcc \
-        make \
-        musl-dev \
-        curl-dev \
-        libxml2-dev \
-        libxslt-dev \
-        postgresql-dev \
-    ;
+FROM base AS dependencies
+
+RUN apk add --no-cache --update \
+      build-base \
+    && rm -rf /var/cache/apk/*
+
+COPY Gemfile Gemfile.lock ./
 
 RUN set -ex; \
     gem update --system; \
     gem install bundler; \
-    bundle config build.nokogiri --use-system-libraries; \
     bundle --jobs=8 --retry=3; \
     gem sources --clear-all; \
-    rm -r /usr/local/bundle/cache; \
-    apk del .build-deps
+    rm -r /usr/local/bundle/cache
 
-RUN set -ex; \
-    cp /usr/share/zoneinfo/America/New_York /etc/localtime; \
-    echo "Pacific Time (US & Canada)" > /etc/timezone
 
+FROM base
+
+WORKDIR /app
+COPY --from=dependencies /usr/local/bundle/ /usr/local/bundle/
 COPY . .
 
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
